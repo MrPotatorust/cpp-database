@@ -14,9 +14,9 @@ int eventLoop(int new_socket, char buffer[])
     while (true)
     {
         ssize_t valread = read(new_socket, buffer, BUFFER_SIZE);
-        std::cout << "Received: " << buffer << std::endl;
+        std::cout << "Received: " << buffer << '\n';
         send(new_socket, buffer, valread, 0);
-        std::cout << "Echo message sent" << std::endl;
+        std::cout << "Echo message sent" << '\n';
     }
 
     return 0;
@@ -55,7 +55,7 @@ int main()
         perror("listen");
         exit(EXIT_FAILURE);
     }
-    std::cout << "Server listening on port " << PORT << std::endl;
+    std::cout << "Server listening on port " << PORT << '\n';
     // Accept incoming connection
     if ((new_socket = accept(server_fd, (struct sockaddr *)&address, &addrlen)) < 0)
     {

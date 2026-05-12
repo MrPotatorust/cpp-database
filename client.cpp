@@ -20,11 +20,13 @@ int eventLoop(int sock, char buffer[])
     while (true)
     {
 
-        std::string hello = "Hello from client";
-        send(sock, hello.c_str(), hello.size(), 0);
-        std::cout << "Hello message sent" << std::endl;
+        std::string message;
+
+        std::getline(std::cin, message);
+
+        send(sock, message.c_str(), message.size(), 0);
         ssize_t valread = read(sock, buffer, BUFFER_SIZE);
-        std::cout << "Received: " << buffer << std::endl;
+        std::cout << "Received: " << buffer << '\n';
     }
 
     return 0;
@@ -40,9 +42,11 @@ int initializeConnection(int sock, struct sockaddr_in serv_addr)
         {
             return 0;
         }
-        std::cout << 'Retrying connection' << '\n';
+        std::cout << "Retrying connection" << '\n';
         std::this_thread::sleep_for(std::chrono::milliseconds(retryTimeoutMs));
     }
+
+    return -1;
 }
 
 int main()
@@ -53,7 +57,7 @@ int main()
     // Creating socket file descriptor
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-        std::cerr << "Socket creation error" << std::endl;
+        std::cerr << "Socket creation error" << '\n';
         return -1;
     }
     serv_addr.sin_family = AF_INET;
@@ -61,15 +65,16 @@ int main()
     // Convert IPv4 and IPv6 addresses from text to binary form
     if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)
     {
-        std::cerr << "Invalid address/ Address not supported" << std::endl;
+        std::cerr << "Invalid address/ Address not supported" << '\n';
         return -1;
     }
     // Connect to the server
     if (initializeConnection(sock, serv_addr) < 0)
     {
-        std::cerr << "Connection Failed" << std::endl;
+        std::cerr << "Connection Failed" << '\n';
         return -1;
     }
+    std::cout << "Connection initalized" << '\n';
 
     eventLoop(sock, buffer);
 
