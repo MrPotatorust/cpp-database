@@ -5,6 +5,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <memory>
+#include <vector>
+#include <string>
+
+#include <Database.hpp>
 
 constexpr int PORT = 8080;
 constexpr int BUFFER_SIZE = 1024;
@@ -15,6 +20,7 @@ int eventLoop(int new_socket, char buffer[])
     {
         ssize_t valread = read(new_socket, buffer, BUFFER_SIZE);
         std::cout << "Received: " << buffer << '\n';
+        
         send(new_socket, buffer, valread, 0);
         std::cout << "Echo message sent" << '\n';
     }
@@ -23,7 +29,10 @@ int eventLoop(int new_socket, char buffer[])
 }
 int main()
 {
-    int server_fd, new_socket;
+    auto database = std::make_unique<Database>();
+
+    int server_fd,
+        new_socket;
     struct sockaddr_in address;
     int opt = 1;
     socklen_t addrlen = sizeof(address);
