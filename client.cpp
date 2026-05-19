@@ -26,6 +26,13 @@ int eventLoop(int sock, char buffer[])
 
         send(sock, message.c_str(), message.size(), 0);
         ssize_t valread = read(sock, buffer, BUFFER_SIZE);
+
+        if (valread <= 0)
+        {
+            std::cout << "Client closed connection \n";
+            break;
+        }
+
         std::cout << "Received: " << buffer << '\n';
     }
 

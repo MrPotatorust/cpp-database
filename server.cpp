@@ -18,10 +18,10 @@ constexpr std::string_view storagePath = "./storage";
 
 int eventLoop(int new_socket, std::unique_ptr<Database> &db)
 {
-    char buffer[BUFFER_SIZE] = {0};
 
     while (true)
     {
+        char buffer[BUFFER_SIZE] = {0};
         ssize_t valread = read(new_socket, buffer, BUFFER_SIZE);
 
         if (valread <= 0)

@@ -5,6 +5,7 @@
 #include <string_view>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 
 enum class TokenType
 {
@@ -37,15 +38,37 @@ struct Token
     std::string lexeme;
 };
 
+struct ASTNode
+{
+    ASTNode *left;
+    ASTNode *right;
+
+    Token *token;
+};
+
+struct AST
+{
+    ASTNode *root;
+};
+
 class Parser
 {
 public:
-    std::string parseCommand(std::string command);
-    Parser(const std::string_view command);
+    std::string_view command;
+
+    Parser(const std::string command);
 
 private:
-    std::vector<Token> tokens;
+    std::vector<std::unique_ptr<Token>> tokens;
+    AST ast;
 
-    std::vector<Token> tokenize(std::string_view source);
-    Token assignToken(std::string_view word);
+    std::size_t tokenPos;
+
+    void nextToken();
+    void prevToken();
+
+    void tokenize(std::string_view source);
+    std::unique_ptr<Token> assignToken(std::string_view word);
+
+    void convertToAST();
 };
