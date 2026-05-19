@@ -1,10 +1,17 @@
 #include <string>
 
+struct engineR
+{
+
+    bool success;
+    std::string message;
+};
+
 class Engine
 {
 public:
     Engine();
-    std::string getDbName();
+    struct engineR get(std::string tableName);
 
 private:
 };

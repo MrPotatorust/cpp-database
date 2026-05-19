@@ -2,6 +2,7 @@
 Engine::Engine() {
 };
 
-std::string getDbName() {
-    
+struct engineR Engine::get(std::string tableName)
+{
+    (void)tableName;
 };

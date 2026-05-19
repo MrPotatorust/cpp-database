@@ -9,34 +9,46 @@
 #include <vector>
 #include <string>
 
-#include <Database.hpp>
+#include "./src/Database.hpp"
 
 constexpr int PORT = 8080;
 constexpr int BUFFER_SIZE = 1024;
 
-int eventLoop(int new_socket, char buffer[])
+constexpr std::string_view storagePath = "./storage";
+
+int eventLoop(int new_socket, std::unique_ptr<Database> &db)
 {
+    char buffer[BUFFER_SIZE] = {0};
+
     while (true)
     {
         ssize_t valread = read(new_socket, buffer, BUFFER_SIZE);
+
+        if (valread <= 0)
+        {
+            std::cout << "Client closed connection \n";
+            break;
+        }
+
         std::cout << "Received: " << buffer << '\n';
-        
+
+        db->query(buffer);
+
         send(new_socket, buffer, valread, 0);
-        std::cout << "Echo message sent" << '\n';
+        std::cout << "Echo message sent \n";
     }
 
     return 0;
 }
 int main()
 {
-    auto database = std::make_unique<Database>();
+    auto db = std::make_unique<Database>();
 
     int server_fd,
         new_socket;
     struct sockaddr_in address;
     int opt = 1;
     socklen_t addrlen = sizeof(address);
-    char buffer[BUFFER_SIZE] = {0};
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
@@ -72,7 +84,7 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    eventLoop(new_socket, buffer);
+    eventLoop(new_socket, db);
 
     // Close the socket
     close(new_socket);
