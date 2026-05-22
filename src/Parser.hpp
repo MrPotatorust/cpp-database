@@ -22,8 +22,9 @@ enum class TokenType
     Division,
     Modulus,
 
-    Default
+    End,
 
+    Void
 };
 
 using TokenValue = std::variant<
@@ -38,17 +39,41 @@ struct Token
     std::string lexeme;
 };
 
+using TokenPtr = std::unique_ptr<Token>;
+
 struct ASTNode
 {
-    ASTNode *left;
-    ASTNode *right;
+    virtual ~ASTNode() = default;
 
-    Token *token;
+    virtual void print();
+
+    TokenPtr token;
 };
 
-struct AST
+using ASTPtr = std::unique_ptr<ASTNode>;
+
+struct IntNode : ASTNode
 {
-    ASTNode *root;
+    int value;
+
+    explicit IntNode(int v) : value(v) {};
+};
+
+struct DoubleNode : ASTNode
+{
+    double value;
+
+    explicit DoubleNode(double v) : value(v) {};
+};
+
+struct FunctionNode : ASTNode
+{
+    std::string_view value;
+
+    ASTPtr left;
+    ASTPtr right;
+
+    explicit FunctionNode(std::string_view v, ASTPtr l, ASTPtr r) : value(v), left(std::move(l)), right(std::move(r)) {};
 };
 
 class Parser
@@ -59,8 +84,7 @@ public:
     Parser(const std::string command);
 
 private:
-    std::vector<std::unique_ptr<Token>> tokens;
-    AST ast;
+    std::vector<TokenPtr> tokens;
 
     std::size_t tokenPos;
 
@@ -68,7 +92,9 @@ private:
     void prevToken();
 
     void tokenize(std::string_view source);
-    std::unique_ptr<Token> assignToken(std::string_view word);
+    TokenPtr assignToken(std::string_view word);
 
     void convertToAST();
+
+    TokenPtr peekToken();
 };

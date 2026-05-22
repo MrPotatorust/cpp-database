@@ -20,7 +20,7 @@ Parser::Parser(std::string command)
 }
 
 // Part of "Lexer"
-std::unique_ptr<Token> Parser::assignToken(const std::string_view word)
+TokenPtr Parser::assignToken(const std::string_view word)
 {
 
     auto token = std::make_unique<Token>();
@@ -28,7 +28,7 @@ std::unique_ptr<Token> Parser::assignToken(const std::string_view word)
     token->value = std::monostate{};
     token->start = 0;
     token->end = 0;
-    token->lexeme = "";
+    token->lexeme = word;
 
     // Check for operators
     if (word == "+")
@@ -137,13 +137,16 @@ void Parser::tokenize(std::string_view source)
         auto token = assignToken(word);
         token->start = beginIt - source.begin();
         token->end = endIt - source.begin();
-        token->lexeme = word;
 
         this->tokens.push_back(std::move(token));
     }
 
     std::cout << "Token count: " << this->tokens.size() << '\n';
 };
+
+TokenPtr Parser::peekToken()
+{
+}
 
 void Parser::nextToken()
 {
@@ -167,4 +170,12 @@ void Parser::convertToAST()
 {
     if (this->tokens.empty())
         throw std::invalid_argument("Cant convert to Abstract Syntax tree, no tokens are available");
+
+    for (std::size_t i = 0; i < tokens.size(); i++)
+    {
+        auto &&token = this->tokens.at(this->tokenPos);
+
+        std::cout << this->tokens.at(this->tokenPos)->lexeme << '\n';
+        this->nextToken();
+    }
 }
