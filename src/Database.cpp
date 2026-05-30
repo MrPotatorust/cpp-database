@@ -1,4 +1,5 @@
 #include "Database.hpp"
+#include "Engine.hpp"
 #include "Parser.hpp"
 #include <iostream>
 #include <stdexcept>
@@ -16,18 +17,31 @@ int Database::initializeState()
 
 bool Database::query(std::string query)
 {
+    (void)query;
 
-    std::vector<Token> tokens;
+    auto engine = Engine();
 
-    try
-    {
-        auto parser = Parser(query);
-    }
-    catch (std::invalid_argument &e)
-    {
-        std::cout << "Could not parse the query" << '\n';
-        return false;
-    }
+    auto columns = std::vector<Column>();
+
+    auto testCol = Column(ColType::UInt, "id");
+
+    columns.push_back(testCol);
+
+    engine.createTable("test_table", columns);
+
+    std::cout << engine.dbMetaData->tables.at(0)->name << '\n';
+
+    // std::vector<Token> tokens;
+
+    // try
+    // {
+    //     auto parser = Parser(query);
+    // }
+    // catch (std::invalid_argument &e)
+    // {
+    //     std::cout << "Could not parse the query" << '\n';
+    //     return false;
+    // }
 
     return true;
 };

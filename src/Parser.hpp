@@ -7,6 +7,8 @@
 #include <iostream>
 #include <memory>
 
+#pragma once
+
 enum class TokenType
 {
     Integer,

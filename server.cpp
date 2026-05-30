@@ -14,13 +14,13 @@
 constexpr int PORT = 8080;
 constexpr int BUFFER_SIZE = 1024;
 
-constexpr std::string_view storagePath = "./storage";
-
 int eventLoop(int new_socket, std::unique_ptr<Database> &db)
 {
 
     while (true)
     {
+        auto db2 = std::make_unique<Database>();
+
         char buffer[BUFFER_SIZE] = {0};
         ssize_t valread = read(new_socket, buffer, BUFFER_SIZE);
 
@@ -32,7 +32,7 @@ int eventLoop(int new_socket, std::unique_ptr<Database> &db)
 
         std::cout << "Received: " << buffer << '\n';
 
-        db->query(buffer);
+        db2->query(buffer);
 
         send(new_socket, buffer, valread, 0);
         std::cout << "Echo message sent \n";

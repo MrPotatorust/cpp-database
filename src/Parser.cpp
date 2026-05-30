@@ -146,6 +146,7 @@ void Parser::tokenize(std::string_view source)
 
 TokenPtr Parser::peekToken()
 {
+    return NULL;
 }
 
 void Parser::nextToken()
@@ -174,6 +175,8 @@ void Parser::convertToAST()
     for (std::size_t i = 0; i < tokens.size(); i++)
     {
         auto &&token = this->tokens.at(this->tokenPos);
+
+        (void)token;
 
         std::cout << this->tokens.at(this->tokenPos)->lexeme << '\n';
         this->nextToken();
