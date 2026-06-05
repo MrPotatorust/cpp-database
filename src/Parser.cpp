@@ -2,10 +2,12 @@
 #include <charconv>
 #include <ranges>
 #include <algorithm>
+#include <cctype>
 
 #include "Parser.hpp"
 
 Parser::Parser(std::string command)
+    : lexemeStart(0), lexemeEnd(0)
 {
     std::transform(command.begin(), command.end(), command.begin(), ::tolower);
 
@@ -89,11 +91,25 @@ void Parser::tokenize(std::string_view source)
     {
         char c = source[i];
 
-        bool isAlnum = isalnum(c) != 0;
+        if (inString && c != '\'' && c != '\"')
+        {
+            if (this->lexeme.empty())
+                this->lexemeStart = i;
+
+            this->lexeme += c;
+            this->lexemeEnd = i + 1;
+            continue;
+        }
+
+        bool isAlnum = std::isalnum(static_cast<unsigned char>(c)) != 0;
 
         if (isAlnum)
         {
+            if (this->lexeme.empty())
+                this->lexemeStart = i;
+
             this->lexeme += c;
+            this->lexemeEnd = i + 1;
             continue;
         }
 
@@ -125,14 +141,26 @@ void Parser::tokenize(std::string_view source)
         case '\'':
             if (inString)
             {
+                this->assignToken(LexerType::String);
+            }
+            else
+            {
                 this->assignToken();
+                this->lexemeStart = i + 1;
+                this->lexemeEnd = i + 1;
             }
             inString = !inString;
             break;
         case '\"':
             if (inString)
             {
+                this->assignToken(LexerType::String);
+            }
+            else
+            {
                 this->assignToken();
+                this->lexemeStart = i + 1;
+                this->lexemeEnd = i + 1;
             }
             inString = !inString;
             break;
@@ -142,7 +170,7 @@ void Parser::tokenize(std::string_view source)
                 this->assignToken();
                 this->lexeme = ",";
                 this->lexemeStart = i;
-                this->lexemeEnd = ++i;
+                this->lexemeEnd = i + 1;
                 this->assignToken();
             }
             break;
@@ -154,7 +182,7 @@ void Parser::tokenize(std::string_view source)
                 this->assignToken();
                 this->lexeme = "(";
                 this->lexemeStart = i;
-                this->lexemeEnd = ++i;
+                this->lexemeEnd = i + 1;
                 this->assignToken();
             }
             break;
@@ -164,7 +192,7 @@ void Parser::tokenize(std::string_view source)
                 this->assignToken();
                 this->lexeme = ")";
                 this->lexemeStart = i;
-                this->lexemeEnd = ++i;
+                this->lexemeEnd = i + 1;
                 this->assignToken();
             }
             break;
