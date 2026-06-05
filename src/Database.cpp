@@ -21,27 +21,25 @@ bool Database::query(std::string query)
 
     auto engine = Engine();
 
-    auto columns = std::vector<Column>();
+    // auto columns = std::vector<Column>();
 
-    auto testCol = Column(ColType::UInt, "id");
+    // auto testCol = Column(ColType::UInt, "id");
 
-    columns.push_back(testCol);
+    // columns.push_back(testCol);
 
-    engine.createTable("test_table", columns);
+    // engine.createTable("test_table", columns);
 
-    std::cout << engine.dbMetaData->tables.at(0)->name << '\n';
+    // std::cout << engine.dbMetaData->tables.at(0)->name << '\n';
 
-    // std::vector<Token> tokens;
-
-    // try
-    // {
-    //     auto parser = Parser(query);
-    // }
-    // catch (std::invalid_argument &e)
-    // {
-    //     std::cout << "Could not parse the query" << '\n';
-    //     return false;
-    // }
+    try
+    {
+        engine.query(query);
+    }
+    catch (std::invalid_argument &e)
+    {
+        std::cout << "Could not parse the query" << '\n';
+        return false;
+    }
 
     return true;
 };

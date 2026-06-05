@@ -6,31 +6,30 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <optional>
 
 #pragma once
 
-enum class TokenType
+enum class LexerType
+{
+    String,
+
+    Void
+};
+
+enum class TokenType : std::uint8_t
 {
     Integer,
     Double,
     String,
 
-    Function,
+    SpecialWord, // Minimum length of 3
 
     // Operators
-    Plus,
-    Minus,
-    Multiplication,
-    Division,
-    Modulus,
-
-    End,
-
-    Void
 };
 
 using TokenValue = std::variant<
-    std::monostate, int, double, std::string_view>;
+    std::monostate, int, double, std::string>;
 
 struct Token
 {
@@ -41,62 +40,39 @@ struct Token
     std::string lexeme;
 };
 
-using TokenPtr = std::unique_ptr<Token>;
-
-struct ASTNode
-{
-    virtual ~ASTNode() = default;
-
-    virtual void print();
-
-    TokenPtr token;
-};
-
-using ASTPtr = std::unique_ptr<ASTNode>;
-
-struct IntNode : ASTNode
-{
-    int value;
-
-    explicit IntNode(int v) : value(v) {};
-};
-
-struct DoubleNode : ASTNode
-{
-    double value;
-
-    explicit DoubleNode(double v) : value(v) {};
-};
-
-struct FunctionNode : ASTNode
-{
-    std::string_view value;
-
-    ASTPtr left;
-    ASTPtr right;
-
-    explicit FunctionNode(std::string_view v, ASTPtr l, ASTPtr r) : value(v), left(std::move(l)), right(std::move(r)) {};
-};
-
 class Parser
 {
 public:
     std::string_view command;
 
     Parser(const std::string command);
+    std::vector<Token> getTokens();
 
 private:
-    std::vector<TokenPtr> tokens;
+    std::vector<Token> tokens;
 
-    std::size_t tokenPos;
+    std::string lexeme;
 
-    void nextToken();
-    void prevToken();
+    std::size_t lexemeStart;
+    std::size_t lexemeEnd;
+
+    void clearLexeme();
 
     void tokenize(std::string_view source);
-    TokenPtr assignToken(std::string_view word);
+    void assignToken(LexerType type = LexerType::Void);
+};
 
-    void convertToAST();
+class ParseError : public std::runtime_error
+{
+public:
+    ParseError(
+        std::string msg,
+        std::size_t start,
+        std::size_t end)
+        : std::runtime_error(std::move(msg)), start(start), end(end)
+    {
+    }
 
-    TokenPtr peekToken();
+    std::size_t start;
+    std::size_t end;
 };

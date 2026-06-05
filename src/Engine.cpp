@@ -1,4 +1,5 @@
 #include "Engine.hpp"
+#include "Parser.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -38,6 +39,8 @@ void Metadata::persistToFile()
 
     std::size_t offset = this->tables.size() * sizeof(char *);
 
+    (void)offset;
+
     for (const auto &table : this->tables)
     {
         size_t len = table->name.size();
@@ -56,15 +59,39 @@ Engine::Engine()
     this->dbMetaData = std::make_unique<Metadata>();
 };
 
-void Engine::createTable(std::string_view name, std::vector<Column> cols)
+void Engine::query(std::string query)
 {
+    auto parser = Parser(query);
+
+    this->tokens = parser.getTokens();
+
+    std::cout << "Lexemes: " << this->tokens.size() << '\n';
+    for (auto token : tokens)
+    {
+        std::cout << token.lexeme << '\n';
+    }
+
+    // if (tokens[0].lexeme == "create")
+    // {
+    //     if (tokens[1].lexeme != "table")
+    //         throw ParseError("The CREATE TABLE syntax is not correct, TABLE is missing", tokens[1].start, tokens[1].end);
+    // }
+
+    throw std::invalid_argument("Could not find the desired Engine function");
+};
+
+void Engine::create(std::string_view name, Column cols)
+{
+
+    (void)cols;
+
     if (name.length() == 0)
         throw std::invalid_argument("Argument name cannot be of length 0, you need to provide atleast one letter.");
 
-    if (cols.size() == 0)
-        throw std::invalid_argument("Argument cols cannot be of length 0, you need to provide atleast one valid column.");
+    // if (cols.size() == 0)
+    //     throw std::invalid_argument("Argument cols cannot be of length 0, you need to provide atleast one valid column.");
 
-    auto table = std::make_unique<Table>(name, cols);
+    auto table = std::make_unique<Table>(Table{name, {}});
 
     this->dbMetaData->tables.push_back(std::move(table));
     this->dbMetaData->persist();

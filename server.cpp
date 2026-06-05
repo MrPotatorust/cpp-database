@@ -19,7 +19,6 @@ int eventLoop(int new_socket, std::unique_ptr<Database> &db)
 
     while (true)
     {
-        auto db2 = std::make_unique<Database>();
 
         char buffer[BUFFER_SIZE] = {0};
         ssize_t valread = read(new_socket, buffer, BUFFER_SIZE);
@@ -32,7 +31,7 @@ int eventLoop(int new_socket, std::unique_ptr<Database> &db)
 
         std::cout << "Received: " << buffer << '\n';
 
-        db2->query(buffer);
+        db->query(buffer);
 
         send(new_socket, buffer, valread, 0);
         std::cout << "Echo message sent \n";

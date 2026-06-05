@@ -1,6 +1,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
+#include "Parser.hpp"
 
 #pragma once
 
@@ -77,9 +79,18 @@ class Engine
 public:
     Engine();
 
+    void query(std::string query);
+
     std::unique_ptr<Metadata> dbMetaData;
 
-    void createTable(std::string_view name, std::vector<Column> cols);
+    void insert(std::string_view name, std::vector<Token> cols);
+
+    void update(std::string_view name, std::vector<Token> cols);
+
+    void create(std::string_view name, Column cols);
+
+    void select(std::string_view name, std::vector<Token> cols);
 
 private:
+    std::vector<Token> tokens;
 };
