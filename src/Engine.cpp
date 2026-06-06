@@ -1,4 +1,5 @@
 #include "Engine.hpp"
+#include "Lexer.hpp"
 #include "Parser.hpp"
 
 #include <iostream>
@@ -61,21 +62,15 @@ Engine::Engine()
 
 void Engine::query(std::string query)
 {
-    auto parser = Parser(query);
+    auto lexer = Lexer(query);
 
-    this->tokens = parser.getTokens();
+    auto tokens = lexer.tokens;
 
-    std::cout << "Lexemes: " << this->tokens.size() << '\n';
+    std::cout << "Lexemes: " << tokens.size() << '\n';
     for (auto token : tokens)
     {
         std::cout << token.lexeme << '\n';
     }
-
-    // if (tokens[0].lexeme == "create")
-    // {
-    //     if (tokens[1].lexeme != "table")
-    //         throw ParseError("The CREATE TABLE syntax is not correct, TABLE is missing", tokens[1].start, tokens[1].end);
-    // }
 
     throw std::invalid_argument("Could not find the desired Engine function");
 };

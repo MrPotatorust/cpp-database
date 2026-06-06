@@ -7,37 +7,72 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include "DBTypes.hpp"
+#include "Lexer.hpp"
 
 #pragma once
 
-enum class LexerType
+enum class ExpressionOp
 {
-    String,
-
-    Void
+    Equal,
 };
 
-enum class TokenType : std::uint8_t
+enum class CreateStmtOpts
 {
-    Integer,
-    Double,
-    String,
-
-    SpecialWord, // Minimum length of 3
-
-    // Operators
+    Table,
+    Database
 };
 
-using TokenValue = std::variant<
-    std::monostate, int, double, std::string>;
-
-struct Token
+struct ASTNode
 {
-    TokenType type;
-    TokenValue value;
-    std::size_t start;
-    std::size_t end;
-    std::string lexeme;
+    virtual ~ASTNode() = default;
+};
+
+struct Identifier : ASTNode
+{
+    std::string value;
+};
+
+// Just for the WHERE expressions now
+struct Expression : ASTNode
+{
+    ExpressionOp operation;
+    std::unique_ptr<Identifier> left;
+    std::unique_ptr<Identifier> right;
+};
+
+struct CreateStmt
+{
+    CreateStmtOpts create;
+    std::string name;
+    std::vector<Column> cols;
+};
+
+struct DropStmt
+{
+    std::string name;
+};
+
+struct TruncateStmt
+{
+    std::string name;
+};
+
+struct DeleteStmt
+{
+    std::string name;
+    std::optional<Expression>
+        where;
+};
+
+struct UpdateStmt
+{
+    std::string name;
+};
+
+struct SelectStmt
+{
+    std::string name;
 };
 
 class Parser
@@ -45,34 +80,10 @@ class Parser
 public:
     std::string_view command;
 
-    Parser(const std::string command);
-    std::vector<Token> getTokens();
+    Parser(const std::vector<Token> tokens);
 
 private:
     std::vector<Token> tokens;
 
-    std::string lexeme;
-
-    std::size_t lexemeStart;
-    std::size_t lexemeEnd;
-
-    void clearLexeme();
-
-    void tokenize(std::string_view source);
-    void assignToken(LexerType type = LexerType::Void);
-};
-
-class ParseError : public std::runtime_error
-{
-public:
-    ParseError(
-        std::string msg,
-        std::size_t start,
-        std::size_t end)
-        : std::runtime_error(std::move(msg)), start(start), end(end)
-    {
-    }
-
-    std::size_t start;
-    std::size_t end;
+    void convertToAST();
 };

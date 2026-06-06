@@ -6,31 +6,6 @@
 
 #pragma once
 
-struct EngineResponse
-{
-
-    bool success;
-    std::string message;
-};
-
-enum class ColType : std::uint8_t
-{
-    UInt,
-    Int,
-    Float,
-    Double,
-    Bool,
-    Varchar,
-};
-
-struct Column
-{
-    ColType type;
-    std::string_view name;
-};
-
-// using ColPtr = std::unique_ptr<Col>;
-
 struct Table
 {
     std::string_view name;
@@ -83,14 +58,13 @@ public:
 
     std::unique_ptr<Metadata> dbMetaData;
 
-    void insert(std::string_view name, std::vector<Token> cols);
+    void insert(std::string_view name);
 
-    void update(std::string_view name, std::vector<Token> cols);
+    void update(std::string_view name);
 
     void create(std::string_view name, Column cols);
 
-    void select(std::string_view name, std::vector<Token> cols);
+    void select(std::string_view name);
 
 private:
-    std::vector<Token> tokens;
 };

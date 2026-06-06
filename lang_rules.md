@@ -1,11 +1,8 @@
 This is just a quick overview for the functions and their "syntax rules", this implementation isnt ideal for longterm changes and implementation but I am trying to implement it myself.
 
 TO DO: GROUP BY/ORDER BY
-!!!!!!!!!!!!!!!!!!!!!!!!!! IMPORTANT, CURRENTLY EACH WORD OR TOKEN HAS TO BE SEPERATED BY AN EMPTY S
-
 
 CONDITIONAL: WHERE condition (identifier)
-
 
 FUNCTIONS
 
