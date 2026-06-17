@@ -14,8 +14,24 @@ enum class ColType : std::uint8_t
     Varchar,
 };
 
+// Constraints, attributes
+enum class ColAttribute
+{
+    Unique,
+    Auto_increment,
+    Not_null,
+    Primary_key
+};
+
 struct Column
 {
+    std::string name;
     ColType type;
-    std::string_view name;
+    std::vector<ColAttribute> colAttrs;
+};
+
+enum class DBFunction
+{
+    Create,
+
 };

@@ -2,7 +2,6 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 
-#include <iostream>
 #include <fstream>
 #include <stdexcept>
 
@@ -29,9 +28,6 @@ void Metadata::loadFile()
 
     std::string buffer(len, '\0');
     file.read(buffer.data(), len);
-
-    std::cout << "Buffer: ";
-    std::cout << buffer << '\n';
 };
 
 void Metadata::persistToFile()
@@ -62,20 +58,49 @@ Engine::Engine()
 
 void Engine::query(std::string query)
 {
-    auto lexer = Lexer(query);
 
-    auto tokens = lexer.tokens;
-
-    std::cout << "Lexemes: " << tokens.size() << '\n';
-    for (auto token : tokens)
+    try
     {
-        std::cout << token.lexeme << '\n';
-    }
+        auto lexer = Lexer(query);
 
-    throw std::invalid_argument("Could not find the desired Engine function");
+        auto tokens = lexer.getTokens();
+
+        auto parser = Parser(tokens);
+
+        auto statement = parser.getStatement();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 };
 
-void Engine::create(std::string_view name, Column cols)
+// Dispatches based on the requests
+void Engine::execute(const Statement &statement)
+{
+    switch (statement.function)
+    {
+    case DBFunction::Create:
+        this->create(statement.tableName, statement.cols);
+        break;
+
+    default:
+        break;
+    }
+}
+
+bool Engine::tableExists(std::string_view name)
+{
+    for (const auto &table : this->dbMetaData->tables)
+    {
+        if (table && table->name == name)
+            return true;
+    }
+
+    return false;
+}
+
+void Engine::create(std::string_view name, std::vector<Column> cols)
 {
 
     (void)cols;
@@ -83,10 +108,13 @@ void Engine::create(std::string_view name, Column cols)
     if (name.length() == 0)
         throw std::invalid_argument("Argument name cannot be of length 0, you need to provide atleast one letter.");
 
-    // if (cols.size() == 0)
-    //     throw std::invalid_argument("Argument cols cannot be of length 0, you need to provide atleast one valid column.");
+    if (cols.size() == 0)
+        throw std::invalid_argument("Argument cols cannot be of length 0, you need to provide atleast one valid column.");
 
-    auto table = std::make_unique<Table>(Table{name, {}});
+    if (this->tableExists(name))
+        throw std::invalid_argument(std::string("A table with the name ") + std::string(name) + " already exists.");
+
+    auto table = std::make_unique<Table>(Table{name, cols});
 
     this->dbMetaData->tables.push_back(std::move(table));
     this->dbMetaData->persist();

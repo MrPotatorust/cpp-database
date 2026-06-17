@@ -17,8 +17,6 @@ int Database::initializeState()
 
 bool Database::query(std::string query)
 {
-    (void)query;
-
     auto engine = Engine();
 
     // auto columns = std::vector<Column>();

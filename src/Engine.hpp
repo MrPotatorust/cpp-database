@@ -62,9 +62,12 @@ public:
 
     void update(std::string_view name);
 
-    void create(std::string_view name, Column cols);
+    void create(std::string_view name, std::vector<Column> cols);
 
     void select(std::string_view name);
 
 private:
+    void execute(const Statement &statement);
+
+    bool tableExists(std::string_view name);
 };

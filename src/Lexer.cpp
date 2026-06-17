@@ -29,6 +29,10 @@ void Lexer::assignToken(LexerType type)
         token.type = TokenType::String;
         token.value = this->lexeme;
     }
+    else if (this->lexeme == ";")
+    {
+        token.type = TokenType::EndF;
+    }
     else
     {
         // Number parsing
@@ -119,6 +123,13 @@ void Lexer::tokenize()
 
             this->lexeme += c;
             break;
+        case ';':
+            this->assignToken();
+            this->lexeme = ";";
+            this->lexemeStart = i;
+            this->lexemeEnd = i + 1;
+            this->assignToken();
+            break;
         case '\n':
             if (!inString)
             {
@@ -196,7 +207,17 @@ void Lexer::tokenize()
     }
 
     this->assignToken();
+
+    auto lastToken = this->tokens.back();
+
+    if (lastToken.type != TokenType::EndF)
+        throw ParseError("The command was not ended correctly with ';'", lastToken.end, lastToken.end);
 };
+
+std::vector<Token> Lexer::getTokens()
+{
+    return this->tokens;
+}
 
 void Lexer::clearLexeme()
 {

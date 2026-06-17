@@ -1,6 +1,7 @@
 #include <variant>
 #include <memory>
 #include <vector>
+#include <iostream>
 
 #include "DBTypes.hpp"
 
@@ -26,6 +27,7 @@ enum class TokenType
     Update,
     Select,
 
+    EndF,
     Void
 };
 
@@ -48,6 +50,8 @@ public:
     std::vector<Token> tokens;
 
     Lexer(const std::string command);
+
+    std::vector<Token> getTokens();
 
 private:
     std::string lexeme;

@@ -41,38 +41,11 @@ struct Expression : ASTNode
     std::unique_ptr<Identifier> right;
 };
 
-struct CreateStmt
+struct Statement
 {
-    CreateStmtOpts create;
-    std::string name;
+    DBFunction function;
+    std::string tableName;
     std::vector<Column> cols;
-};
-
-struct DropStmt
-{
-    std::string name;
-};
-
-struct TruncateStmt
-{
-    std::string name;
-};
-
-struct DeleteStmt
-{
-    std::string name;
-    std::optional<Expression>
-        where;
-};
-
-struct UpdateStmt
-{
-    std::string name;
-};
-
-struct SelectStmt
-{
-    std::string name;
 };
 
 class Parser
@@ -82,8 +55,23 @@ public:
 
     Parser(const std::vector<Token> tokens);
 
+    const Statement &getStatement();
+
 private:
     std::vector<Token> tokens;
+    Statement statement;
 
-    void convertToAST();
+    std::size_t tokIndex;
+
+    const Token &peek();
+    Token advance();
+    Token consume(TokenType TokenType);
+    Token previous();
+
+    bool isAtEnd();
+
+    void parse();
+    void parseCreate();
+
+    std::vector<Column> parseCols();
 };
