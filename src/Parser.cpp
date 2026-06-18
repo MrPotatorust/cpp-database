@@ -85,12 +85,15 @@ bool Parser::isAtEnd()
 void Parser::parse()
 {
 
-    auto firstToken = this->peek().lexeme;
+    auto firstToken = this->peek();
 
-    if (firstToken == "create")
+    if (firstToken.lexeme == "create")
     {
         this->parseCreate();
+        return;
     }
+
+    throw ParseError("Could not locate any valid function", firstToken.start, firstToken.end);
 }
 
 const Statement &Parser::getStatement()
@@ -121,7 +124,7 @@ void Parser::parseCreate()
     Statement statement{};
 
     statement.function = DBFunction::Create;
-    statement.tableName = tableToken.lexeme;
+    statement.tableName = tableNameToken.lexeme;
     statement.cols = tableCols;
 
     this->statement = statement;
