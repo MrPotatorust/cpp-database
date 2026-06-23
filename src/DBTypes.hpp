@@ -15,7 +15,7 @@ enum class ColType : std::uint8_t
 };
 
 // Constraints, attributes
-enum class ColAttribute
+enum class ColAttribute : std::uint8_t
 {
     Unique,
     Auto_increment,

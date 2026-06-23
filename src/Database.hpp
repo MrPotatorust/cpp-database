@@ -16,12 +16,12 @@ Table-Table-Table (Just layed out next to each other)
 ----------------------
 Table
 **********
-table_name_len (uint8_t)
-table_name (char *, max 255)
-Pointers to individual cols (byte offsets inside the file)
+cols_count (uint_8)
+table_name_len (uint64_t)
+table_name (char *, max as much as can fit in uint64_t)
+col_name_len (uint64_t)
+col_name (char *, max as much as can fit in uint64_t)
 col_type (uint8_t)
-col_name_len (uint8_t)
-col_name (char *, max 255)
 
 
 */
