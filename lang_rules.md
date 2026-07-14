@@ -56,3 +56,8 @@ Potential: conditional WHERE
 
 Example:
 SELECT col_name1, col_name2 / \* FROM Customers WHERE condition;
+
+
+IMPORTANT NOTES
+
+Currently I have not implemented the setting of the default value, the default value will be NULL (std::monostate), the engine will not throw an error

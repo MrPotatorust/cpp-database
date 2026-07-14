@@ -8,7 +8,7 @@
 #include "Parser.hpp"
 #include "DBTypes.hpp"
 
-namespace fHelp
+namespace
 {
     // Memory layout: strLen(8B), string
     void writeString(std::ofstream &file, const std::string &val)
@@ -42,12 +42,27 @@ namespace fHelp
 
 };
 
-Metadata::Metadata()
+Database::Database()
 {
     this->loadFile();
 };
 
-void Metadata::loadFile()
+std::vector<Table> &Database::getTables()
+{
+    return this->tables;
+};
+
+const std::vector<Table> &Database::getTables() const
+{
+    return this->tables;
+};
+
+void Database::addTable(const Table &table)
+{
+    this->tables.push_back(table);
+}
+
+void Database::loadFile()
 {
     std::cout << "Loading file \n";
     std::ifstream file("./storage/metadata.dat", std::ios::binary);
@@ -63,14 +78,14 @@ void Metadata::loadFile()
         if (!file.read(reinterpret_cast<char *>(&colsCount), sizeof(std::uint8_t)))
             break;
 
-        auto table = std::make_unique<Table>();
-        table->name = fHelp::readString(file);
+        auto table = Table();
+        table.name = readString(file);
 
         bool readOk = true;
 
         for (std::size_t i = 0; i < colsCount; ++i)
         {
-            Column col;
+            ColumnRecord col;
 
             if (!file.read(reinterpret_cast<char *>(&colNameLen), sizeof(std::uint64_t)))
             {
@@ -93,7 +108,7 @@ void Metadata::loadFile()
             }
             col.type = static_cast<ColType>(type);
 
-            table->columns.push_back(std::move(col));
+            table.columns.push_back(std::move(col));
         }
 
         if (!readOk)
@@ -105,8 +120,8 @@ void Metadata::loadFile()
     for (auto &table : this->tables)
     {
 
-        std::cout << "Table " << table->name << '\n';
-        for (auto col : table->columns)
+        std::cout << "Table " << table.name << '\n';
+        for (auto col : table.columns)
         {
             std::cout << col.name << '\n';
             std::cout << static_cast<int>(col.type) << '\n';
@@ -116,51 +131,40 @@ void Metadata::loadFile()
     file.close();
 };
 
-void Metadata::persistToFile()
+void Database::persistToFile()
 {
     std::ofstream file("./storage/metadata.dat", std::ios::binary);
 
-    for (const auto &tablePtr : this->tables)
+    for (const auto &table : this->tables)
     {
-        const Table &table = *tablePtr;
 
         std::uint8_t colsCount = static_cast<std::uint8_t>(table.columns.size());
 
         file.write(reinterpret_cast<const char *>(&colsCount), sizeof(colsCount));
 
-        fHelp::writeString(file, table.name);
+        writeString(file, table.name);
 
         for (const auto &col : table.columns)
         {
-            fHelp::writeString(file, col.name);
+            writeString(file, col.name);
             std::uint8_t type = static_cast<std::uint8_t>(col.type);
             file.write(reinterpret_cast<const char *>(&type), sizeof(type));
         }
     }
 };
 
-void Metadata::persist()
+void Database::persist()
 {
     this->persistToFile();
 };
-
-Database::Database()
-{
-    this->metaData = std::make_unique<Metadata>();
-    this->engine = std::make_unique<Engine>(*this);
-};
-
-Metadata &Database::getMetadata()
-{
-    return *this->metaData;
-}
 
 bool Database::query(std::string query)
 {
 
     try
     {
-        this->engine->query(query);
+        Engine engine(*this);
+        engine.query(query);
     }
     catch (std::invalid_argument &e)
     {

@@ -45,7 +45,7 @@ struct Statement
 {
     DBFunction function;
     std::string tableName;
-    std::vector<Column> cols;
+    std::vector<ColumnRecord> cols;
 };
 
 class Parser
@@ -53,7 +53,7 @@ class Parser
 public:
     std::string_view command;
 
-    Parser(const std::vector<Token> tokens);
+    Parser(std::vector<Token> tokens);
 
     const Statement &getStatement();
 
@@ -65,13 +65,21 @@ private:
 
     const Token &peek();
     Token advance();
-    Token consume(TokenType TokenType);
+
+    Token consume(TokenType comparedType);
+    Token consume(ColValue comparedValue);
+
     Token previous();
 
     bool isAtEnd();
 
     void parse();
     void parseCreate();
+    void parseSelect();
+    void parseInsert();
 
-    std::vector<Column> parseCols();
+    template <typename T, typename ParseItem>
+    std::vector<T> parseList(ParseItem parseItem);
+
+    std::vector<ColumnRecord> parseCols();
 };

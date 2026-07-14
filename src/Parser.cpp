@@ -1,44 +1,19 @@
 #include <stdexcept>
 
 #include "Parser.hpp"
+#include "Helpers.hpp"
 
-std::string tokenTypeToString(TokenType tokenType)
+//? WithAttrs means types like int, long or constraints
+ColumnRecord parseColumn(std::vector<Token>, bool withAttrs)
 {
-    switch (tokenType)
-    {
-    case TokenType::Integer:
-        return "Integer";
-    case TokenType::Double:
-        return "Double";
-    case TokenType::String:
-        return "String";
-    case TokenType::SpecialWord:
-        return "SpecialWord";
-    case TokenType::Create:
-        return "Create";
-    case TokenType::Drop:
-        return "Drop";
-    case TokenType::Delete:
-        return "Delete";
-    case TokenType::Update:
-        return "Update";
-    case TokenType::Select:
-        return "Select";
-    case TokenType::EndF:
-        return "EndF";
-    case TokenType::Void:
-        return "Void";
-    }
-
-    return "Unknown";
 }
 
-Parser::Parser(const std::vector<Token> tokens)
+Parser::Parser(std::vector<Token> tokens)
 {
     if (tokens.size() == 0)
         throw std::invalid_argument("You have to pass tokens to parser");
 
-    this->tokens = tokens;
+    this->tokens = std::move(tokens);
     this->tokIndex = 0;
 
     this->parse();
@@ -57,14 +32,29 @@ Token Parser::advance()
     return previous();
 }
 
-Token Parser::consume(TokenType tokenType)
+Token Parser::consume(TokenType comparedType)
 {
 
-    if (peek().type != tokenType)
-    {
-        throw std::invalid_argument(
-            std::string("Expected ") + tokenTypeToString(tokenType) + " but got " + tokenTypeToString(peek().type));
-    }
+    auto token = peek();
+
+    if (comparedType != token.type)
+        throw ParseError(
+            std::string("Expected ") + tokenTypeToString(comparedType) + " but got " + tokenTypeToString(token.type), token.start, token.end);
+
+    if (!isAtEnd())
+        tokIndex++;
+
+    return previous();
+}
+
+Token Parser::consume(ColValue comparedValue)
+{
+
+    auto token = peek();
+
+    if (comparedValue != token.value)
+        throw ParseError(
+            std::string("Expected ") + tokenValueToString(comparedValue) + " but got " + tokenValueToString(token.value), token.start, token.end);
 
     if (!isAtEnd())
         tokIndex++;
@@ -90,6 +80,16 @@ void Parser::parse()
     if (firstToken.lexeme == "create")
     {
         this->parseCreate();
+        return;
+    }
+    if (firstToken.lexeme == "select")
+    {
+        this->parseSelect();
+        return;
+    }
+    if (firstToken.lexeme == "insert")
+    {
+        this->parseInsert();
         return;
     }
 
@@ -130,9 +130,44 @@ void Parser::parseCreate()
     this->statement = statement;
 }
 
-std::vector<Column> Parser::parseCols()
+void Parser::parseSelect()
 {
-    std::vector<Column> columns;
+}
+
+void Parser::parseInsert()
+{
+    std::vector<ColumnRecord> columns;
+}
+
+template <typename T, typename ParseItemFn>
+std::vector<T> Parser::parseList(ParseItemFn parseItemFn)
+{
+    std::vector<T> list;
+
+    this->consume("(");
+
+    while (this->peek().lexeme != ")")
+    {
+        list.push_back(parseItemFn(this->tokens));
+
+        try
+        {
+            this->consume(",");
+        }
+        catch (const std::exception &e)
+        {
+
+            this->consume(")");
+            break;
+        }
+    }
+
+    return list;
+}
+
+std::vector<ColumnRecord> Parser::parseCols()
+{
+    std::vector<ColumnRecord> columns;
 
     auto openParen = this->advance();
     if (openParen.lexeme != "(")
@@ -149,7 +184,7 @@ std::vector<Column> Parser::parseCols()
         }
 
         auto columnTypeToken = this->advance();
-        Column column{};
+        ColumnRecord column{};
         column.name = columnNameToken.lexeme;
 
         if (columnTypeToken.lexeme == "uint")

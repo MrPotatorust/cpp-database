@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine.hpp"
+#include "DBTypes.hpp"
 #include <string>
 #include <vector>
 
@@ -26,27 +26,22 @@ col_type (uint8_t)
 
 */
 
-class Metadata
-{
-public:
-    std::vector<TablePtr> tables;
-    Metadata();
-    void persist();
-
-private:
-    void loadFile();
-    void persistToFile();
-};
-
 class Database
 {
 public:
     std::string name;
+    std::vector<Table> tables;
+
+    std::vector<Row> data;
+
     Database();
     bool query(std::string query);
-    Metadata &getMetadata();
+    void persist();
+    std::vector<Table> &getTables();
+    const std::vector<Table> &getTables() const;
+    void addTable(const Table &table);
 
 private:
-    std::unique_ptr<Metadata> metaData;
-    std::unique_ptr<Engine> engine;
+    void loadFile();
+    void persistToFile();
 };

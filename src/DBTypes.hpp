@@ -1,6 +1,8 @@
 #include <vector>
 #include <memory>
 #include <variant>
+#include <string>
+#include <cstdint>
 
 #pragma once
 
@@ -23,15 +25,67 @@ enum class ColAttribute : std::uint8_t
     Primary_key
 };
 
-struct Column
+struct ColumnRecord
 {
     std::string name;
     ColType type;
-    std::vector<ColAttribute> colAttrs;
+    std::vector<ColAttribute> attrs;
 };
 
 enum class DBFunction
 {
     Create,
+    Insert,
+    Select
+};
 
+using ColValue = std::variant<
+    std::monostate,
+    unsigned int,
+    int,
+    float,
+    double,
+    bool,
+    std::string>;
+
+using Row = std::vector<ColValue>;
+
+class Column
+{
+public:
+    std::string name;
+    ColType type;
+    std::vector<ColAttribute> attrs;
+
+    Column(const ColumnRecord &record);
+
+    bool hasDefaultValue() const;
+    ColValue getDefaultValue() const;
+
+private:
+};
+
+struct TableRecord
+{
+    std::string name;
+    std::vector<ColumnRecord> columns;
+};
+
+using TableRecordPtr = std::unique_ptr<TableRecord>;
+
+class Table
+{
+public:
+    std::string name;
+    std::vector<Column> columns;
+    std::vector<Row> rows;
+
+    Table();
+    Table(std::string name, std::vector<Column> cols);
+    Table(std::string name, std::vector<ColumnRecord> cols);
+    std::string getName();
+    std::vector<Column> getColumns();
+    void addColumn(const ColumnRecord &record);
+    void writeRow(const Row &rowToAdd);
+    void writeRows(const std::vector<Row> &rowsToAdd);
 };

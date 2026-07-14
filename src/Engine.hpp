@@ -8,14 +8,6 @@ class Database;
 
 #pragma once
 
-struct Table
-{
-    std::string name;
-    std::vector<Column> columns;
-};
-
-using TablePtr = std::unique_ptr<Table>;
-
 class Engine
 {
 public:
@@ -23,11 +15,11 @@ public:
 
     void query(std::string query);
 
-    void insert(std::string name);
+    void insert(std::string_view name, std::vector<std::string> insertCols, std::vector<Row> rows);
 
     void update(std::string name);
 
-    void create(std::string name, std::vector<Column> cols);
+    void create(std::string name, std::vector<ColumnRecord> cols);
 
     void select(std::string name);
 
@@ -37,4 +29,6 @@ private:
     void execute(const Statement &statement);
 
     bool tableExists(std::string_view name);
+
+    Table &getTable(std::string_view name);
 };

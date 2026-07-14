@@ -31,13 +31,10 @@ enum class TokenType
     Void
 };
 
-using TokenValue = std::variant<
-    std::monostate, int, double, std::string>;
-
 struct Token
 {
     TokenType type;
-    TokenValue value;
+    ColValue value;
     std::size_t start;
     std::size_t end;
     std::string lexeme;
