@@ -1,12 +1,9 @@
 #include <stdexcept>
+#include <algorithm>
+#include <cctype>
 
 #include "Parser.hpp"
 #include "Helpers.hpp"
-
-//? WithAttrs means types like int, long or constraints
-ColumnRecord parseColumn(std::vector<Token>, bool withAttrs)
-{
-}
 
 Parser::Parser(std::vector<Token> tokens)
 {
@@ -39,7 +36,7 @@ Token Parser::consume(TokenType comparedType)
 
     if (comparedType != token.type)
         throw ParseError(
-            std::string("Expected ") + tokenTypeToString(comparedType) + " but got " + tokenTypeToString(token.type), token.start, token.end);
+            std::string{"Expected "} + tokenTypeToString(comparedType) + " but got " + tokenTypeToString(token.type), token.start, token.end);
 
     if (!isAtEnd())
         tokIndex++;
@@ -54,7 +51,7 @@ Token Parser::consume(ColValue comparedValue)
 
     if (comparedValue != token.value)
         throw ParseError(
-            std::string("Expected ") + tokenValueToString(comparedValue) + " but got " + tokenValueToString(token.value), token.start, token.end);
+            std::string{"Expected "} + tokenValueToString(comparedValue) + " but got " + tokenValueToString(token.value), token.start, token.end);
 
     if (!isAtEnd())
         tokIndex++;
@@ -98,36 +95,55 @@ void Parser::parse()
 
 const Statement &Parser::getStatement()
 {
-    return this->statement;
+    return this->statement.value();
+}
+
+std::string Parser::parseNameToken()
+{
+    auto nameToken = this->advance();
+
+    return this->normalizeForName(nameToken);
+}
+
+std::string
+Parser::normalizeForName(const Token &token)
+{
+
+    std::string str(token.lexeme);
+
+    if (str.length() == 0)
+    {
+        throw ParseError("Name cannot be of length 0", token.start, token.end);
+    }
+
+    if (!containsOnlyLetters(token.lexeme) || token.lexeme.length() > maxNameLength)
+        throw ParseError("Cant normalize token according to naming standards", token.start, token.end);
+
+    toLowerCaseRef(str);
+
+    return str;
 }
 
 void Parser::parseCreate()
 {
     auto createToken = this->advance();
 
-    if (createToken.type != TokenType::SpecialWord || createToken.lexeme != "create")
+    if (createToken.type != TokenType::SpecialWord || toLowerCase(createToken.lexeme) != "create")
     {
         throw ParseError("The first word in a create statement has to be 'create'", createToken.start, createToken.end);
     }
     auto tableToken = this->advance();
-    if (tableToken.type != TokenType::SpecialWord || tableToken.lexeme != "table")
+    if (tableToken.type != TokenType::SpecialWord || toLowerCase(tableToken.lexeme) != "table")
     {
         throw ParseError("The second word in a create statement has to be 'table'", tableToken.start, tableToken.end);
     }
-    auto tableNameToken = this->advance();
-    if (tableNameToken.lexeme.length() <= 0)
-    {
-        throw ParseError("Did not provide a table name", tableNameToken.start, tableNameToken.end);
-    }
-    auto tableCols = parseCols();
+    auto tableName = this->parseNameToken();
+    auto tableCols = parseList<ColumnRecord>([this]()
+                                             { return this->parseColumnRecord(); });
 
-    Statement statement{};
-
-    statement.function = DBFunction::Create;
-    statement.tableName = tableNameToken.lexeme;
-    statement.cols = tableCols;
-
-    this->statement = statement;
+    this->statement = CreateStatement{
+        tableName,
+        std::move(tableCols)};
 }
 
 void Parser::parseSelect()
@@ -136,7 +152,54 @@ void Parser::parseSelect()
 
 void Parser::parseInsert()
 {
-    std::vector<ColumnRecord> columns;
+
+    auto insertToken = this->advance();
+    if (insertToken.type != TokenType::SpecialWord || toLowerCase(insertToken.lexeme) != "insert")
+    {
+        throw ParseError("The first word in a insert statement has to be insert''", insertToken.start, insertToken.end);
+    }
+
+    auto intoToken = this->advance();
+    if (intoToken.type != TokenType::SpecialWord || toLowerCase(intoToken.lexeme) != "into")
+    {
+        throw ParseError("The second word in a create statement has to be 'table'", intoToken.start, intoToken.end);
+    }
+    auto tableName = this->parseNameToken();
+
+    std::vector<std::string> columns = parseList<std::string>();
+
+    //? Parses each columns value, because the insert can be a list of list values ((123, "fun"), (123, "hihih"))
+    std::vector<Row> rows = parseList<Row>([this]()
+                                           { return this->parseList<ColValue>([this]()
+                                                                              { return this->advance().value; }); });
+
+    this->statement = InsertStatement{
+        tableName,
+        columns,
+        rows
+
+    };
+}
+
+std::string Parser::parseItem()
+{
+    auto token = this->advance();
+
+    //? Alternative safer implementation
+    // auto tokenString = tokenValueToString(token.value);
+
+    // if (tokenString == std::string{UNKNOWN_TOKEN_TYPE})
+    // {
+    //     throw ParseError("Could not convert token to string", token.start, token.end);
+    // }
+    return token.lexeme;
+}
+
+template <typename T>
+std::vector<T> Parser::parseList()
+{
+    return this->parseList<T>([this]()
+                              { return this->parseItem(); });
 }
 
 template <typename T, typename ParseItemFn>
@@ -148,7 +211,7 @@ std::vector<T> Parser::parseList(ParseItemFn parseItemFn)
 
     while (this->peek().lexeme != ")")
     {
-        list.push_back(parseItemFn(this->tokens));
+        list.push_back(parseItemFn());
 
         try
         {
@@ -165,65 +228,40 @@ std::vector<T> Parser::parseList(ParseItemFn parseItemFn)
     return list;
 }
 
-std::vector<ColumnRecord> Parser::parseCols()
+ColumnRecord Parser::parseColumnRecord()
 {
-    std::vector<ColumnRecord> columns;
+    ColumnRecord columnRecord;
 
-    auto openParen = this->advance();
-    if (openParen.lexeme != "(")
+    auto nameToken = this->advance();
+    try
     {
-        throw ParseError("Expected '(' after table name", openParen.start, openParen.end);
+        columnRecord.name = this->normalizeForName(nameToken);
+    }
+    catch (const std::exception &e)
+    {
+        throw ParseError("Expected a column name", nameToken.start, nameToken.end);
     }
 
-    while (!isAtEnd() && peek().lexeme != ")")
+    auto columnTypeToken = this->advance();
+
+    if (columnTypeToken.lexeme == "uint")
+        columnRecord.type = ColType::UInt;
+    else if (columnTypeToken.lexeme == "int")
+        columnRecord.type = ColType::Int;
+    else if (columnTypeToken.lexeme == "float")
+        columnRecord.type = ColType::Float;
+    else if (columnTypeToken.lexeme == "double")
+        columnRecord.type = ColType::Double;
+    else if (columnTypeToken.lexeme == "bool")
+        columnRecord.type = ColType::Bool;
+    else if (columnTypeToken.lexeme == "varchar")
+        columnRecord.type = ColType::Varchar;
+    else
     {
-        auto columnNameToken = this->advance();
-        if (columnNameToken.lexeme.empty() || columnNameToken.lexeme == "," || columnNameToken.lexeme == "(" || columnNameToken.lexeme == ")")
-        {
-            throw ParseError("Expected a column name", columnNameToken.start, columnNameToken.end);
-        }
-
-        auto columnTypeToken = this->advance();
-        ColumnRecord column{};
-        column.name = columnNameToken.lexeme;
-
-        if (columnTypeToken.lexeme == "uint")
-            column.type = ColType::UInt;
-        else if (columnTypeToken.lexeme == "int")
-            column.type = ColType::Int;
-        else if (columnTypeToken.lexeme == "float")
-            column.type = ColType::Float;
-        else if (columnTypeToken.lexeme == "double")
-            column.type = ColType::Double;
-        else if (columnTypeToken.lexeme == "bool")
-            column.type = ColType::Bool;
-        else if (columnTypeToken.lexeme == "varchar")
-            column.type = ColType::Varchar;
-        else
-        {
-            throw ParseError("Expected a valid column type", columnTypeToken.start, columnTypeToken.end);
-        }
-
-        columns.push_back(column);
-
-        if (peek().lexeme == ",")
-        {
-            this->advance();
-        }
-        else if (peek().lexeme != ")")
-        {
-            throw ParseError("Expected ',' or ')' after column definition", peek().start, peek().end);
-        }
+        throw ParseError("Expected a valid column type", columnTypeToken.start, columnTypeToken.end);
     }
 
-    if (peek().lexeme != ")")
-    {
-        throw ParseError("Expected ')' after column definitions", peek().start, peek().end);
-    }
-
-    this->advance();
-
-    return columns;
+    return columnRecord;
 }
 
 // void Parser::parseDrop()

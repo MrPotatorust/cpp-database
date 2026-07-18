@@ -4,6 +4,12 @@
 #include <string>
 #include <vector>
 
+struct QueryResult
+{
+    bool success;
+    std::string message;
+};
+
 /*
 MetaData Storage layout:
 
@@ -35,7 +41,7 @@ public:
     std::vector<Row> data;
 
     Database();
-    bool query(std::string query);
+    QueryResult query(std::string query);
     void persist();
     std::vector<Table> &getTables();
     const std::vector<Table> &getTables() const;

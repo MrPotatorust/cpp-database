@@ -1,4 +1,6 @@
 #include "DBTypes.hpp"
+#include "Helpers.hpp"
+#include <iostream>
 
 Column::Column(const ColumnRecord &record) : name(record.name), type(record.type), attrs(record.attrs) {};
 
@@ -49,7 +51,25 @@ void Table::writeRow(const Row &rowToAdd)
     this->rows.push_back(rowToAdd);
 }
 
+void Table::printRows(const std::size_t &limit)
+{
+
+    auto lim = limit == 0 ? this->rows.size() : limit;
+
+    for (std::size_t i = 0; i < lim; i++)
+    {
+        auto &row = this->rows.at(i);
+
+        for (const auto &value : row)
+        {
+            std::cout << colValueToString(value) << ' ';
+        }
+
+        std::cout << '\n';
+    }
+}
+
 void Table::writeRows(const std::vector<Row> &rowsToAdd)
 {
-    this->rows.insert(this->rows.end(), rows.begin(), rows.end());
+    (void)rowsToAdd;
 }

@@ -1,5 +1,5 @@
 #include <utility>
-#include <unordered_map>
+#include <type_traits>
 
 #include "Engine.hpp"
 #include "Lexer.hpp"
@@ -11,40 +11,47 @@ Engine::Engine(Database &db)
     : db(db) {
       };
 
-void Engine::query(std::string query)
+std::string Engine::query(std::string query)
 {
-    try
-    {
-        auto lexer = Lexer(query);
+    auto lexer = Lexer(query);
 
-        auto tokens = lexer.getTokens();
+    auto tokens = lexer.getTokens();
 
-        auto parser = Parser(std::move(tokens));
+    auto parser = Parser(std::move(tokens));
 
-        auto statement = parser.getStatement();
+    const auto &statement = parser.getStatement();
 
-        this->execute(statement);
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << e.what() << '\n';
-    }
+    return this->execute(statement);
 };
 
 // Dispatches based on the requests
-void Engine::execute(const Statement &statement)
+std::string Engine::execute(const Statement &statement)
 {
-    switch (statement.function)
-    {
-    case DBFunction::Create:
-        this->create(statement.tableName, statement.cols);
-        break;
+    return std::visit(
+        [this](const auto &concreteStatement)
+        {
+            using StatementType = std::decay_t<decltype(concreteStatement)>;
 
-    default:
-        break;
-    }
-
-    this->db.persist();
+            if constexpr (std::is_same_v<StatementType, CreateStatement>)
+            {
+                this->create(concreteStatement.tableName, concreteStatement.columns);
+                this->db.persist();
+                return "Successfully created table " + concreteStatement.tableName + ".";
+            }
+            else if constexpr (std::is_same_v<StatementType, InsertStatement>)
+            {
+                this->insert(concreteStatement.tableName, concreteStatement.columns, concreteStatement.rows);
+                this->db.persist();
+                return "Successfully inserted " + std::to_string(concreteStatement.rows.size()) +
+                       " row(s) into table " + concreteStatement.tableName + ".";
+            }
+            else if constexpr (std::is_same_v<StatementType, SelectStatement>)
+            {
+                this->select(concreteStatement.tableName);
+                return "Successfully selected from table " + concreteStatement.tableName + ".";
+            }
+        },
+        statement);
 }
 
 bool Engine::tableExists(std::string_view name)
@@ -68,7 +75,7 @@ Table &Engine::getTable(std::string_view name)
             return table;
     }
 
-    throw std::invalid_argument("A table with the name " + std::string(name) + " does not exist.");
+    throw std::invalid_argument("A table with the name " + std::string{name} + " does not exist.");
 }
 
 void Engine::create(std::string name, std::vector<ColumnRecord> cols)
@@ -90,9 +97,13 @@ void Engine::create(std::string name, std::vector<ColumnRecord> cols)
     std::cout << "Succesfully created a table \n";
 };
 
+void Engine::select(std::string name)
+{
+    throw std::logic_error("Select is not implemented yet for table " + name + ".");
+}
+
 void Engine::insert(std::string_view name, std::vector<std::string> insertCols, std::vector<Row> rows)
 {
-    auto colSize = insertCols.size();
 
     auto &table = getTable(name);
     auto cols = table.getColumns();
@@ -114,7 +125,7 @@ void Engine::insert(std::string_view name, std::vector<std::string> insertCols, 
             };
         }
         if (found == false)
-            throw std::invalid_argument("The Column " + std::string(name) + " does not exist at the table " + table.name + ".");
+            throw std::invalid_argument("The Column " + std::string{name} + " does not exist at the table " + table.name + ".");
     }
 
     /*
@@ -168,7 +179,7 @@ void Engine::insert(std::string_view name, std::vector<std::string> insertCols, 
             ColType valueType;
             ColValue value;
 
-            if (mapIndex != -1)
+            if (mapIndex != static_cast<long unsigned int>(-1))
             {
                 value = row.at(mapIndex);
                 try

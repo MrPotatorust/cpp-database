@@ -9,6 +9,9 @@
 #include <chrono>
 #include <thread>
 
+#include <readline/history.h>
+#include <readline/readline.h>
+
 constexpr int PORT = 8080;
 constexpr int BUFFER_SIZE = 1024;
 
@@ -20,9 +23,16 @@ int eventLoop(int sock, char buffer[])
     while (true)
     {
 
-        std::string message;
+        char *input = readline("> ");
+        if (!input)
+            break;
 
-        std::getline(std::cin, message);
+        std::string message(input);
+
+        if (!message.empty())
+            add_history(input);
+
+        std::free(input);
 
         send(sock, message.c_str(), message.size(), 0);
         ssize_t valread = read(sock, buffer, BUFFER_SIZE);
@@ -33,7 +43,8 @@ int eventLoop(int sock, char buffer[])
             break;
         }
 
-        std::cout << "Received: " << buffer << '\n';
+        const std::string response(buffer, static_cast<std::size_t>(valread));
+        std::cout << response << '\n';
     }
 
     return 0;

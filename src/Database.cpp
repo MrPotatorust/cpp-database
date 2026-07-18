@@ -158,19 +158,15 @@ void Database::persist()
     this->persistToFile();
 };
 
-bool Database::query(std::string query)
+QueryResult Database::query(std::string query)
 {
-
     try
     {
         Engine engine(*this);
-        engine.query(query);
+        return {true, engine.query(std::move(query))};
     }
-    catch (std::invalid_argument &e)
+    catch (const std::exception &error)
     {
-        std::cout << "Could not parse the query" << '\n';
-        return false;
+        return {false, error.what()};
     }
-
-    return true;
 };

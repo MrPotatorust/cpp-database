@@ -29,7 +29,7 @@ struct ColumnRecord
 {
     std::string name;
     ColType type;
-    std::vector<ColAttribute> attrs;
+    std::vector<ColAttribute> attrs; // Not currently implemented
 };
 
 enum class DBFunction
@@ -85,6 +85,7 @@ public:
     Table(std::string name, std::vector<ColumnRecord> cols);
     std::string getName();
     std::vector<Column> getColumns();
+    void printRows(const std::size_t &limit = 0);
     void addColumn(const ColumnRecord &record);
     void writeRow(const Row &rowToAdd);
     void writeRows(const std::vector<Row> &rowsToAdd);

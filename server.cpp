@@ -29,12 +29,16 @@ int eventLoop(int new_socket, std::unique_ptr<Database> &db)
             break;
         }
 
-        std::cout << "Received: " << buffer << '\n';
+        const std::string request(buffer, static_cast<std::size_t>(valread));
+        std::cout << "Received: " << request << '\n';
 
-        db->query(buffer);
+        const auto result = db->query(request);
+        const std::string response = result.success
+                                         ? "OK: " + result.message
+                                         : "ERROR: " + result.message;
 
-        send(new_socket, buffer, valread, 0);
-        std::cout << "Echo message sent \n";
+        send(new_socket, response.data(), response.size(), 0);
+        std::cout << "Response sent: " << response << '\n';
     }
 
     return 0;

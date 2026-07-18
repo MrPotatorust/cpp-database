@@ -41,12 +41,26 @@ struct Expression : ASTNode
     std::unique_ptr<Identifier> right;
 };
 
-struct Statement
+struct CreateStatement
 {
-    DBFunction function;
     std::string tableName;
-    std::vector<ColumnRecord> cols;
+    std::vector<ColumnRecord> columns;
 };
+
+struct InsertStatement
+{
+    std::string tableName;
+    std::vector<std::string> columns;
+    std::vector<Row> rows;
+};
+
+struct SelectStatement
+{
+    std::string tableName;
+    std::vector<std::string> columns;
+};
+
+using Statement = std::variant<CreateStatement, InsertStatement, SelectStatement>;
 
 class Parser
 {
@@ -56,10 +70,11 @@ public:
     Parser(std::vector<Token> tokens);
 
     const Statement &getStatement();
+    std::string parseNameToken();
 
 private:
     std::vector<Token> tokens;
-    Statement statement;
+    std::optional<Statement> statement;
 
     std::size_t tokIndex;
 
@@ -78,8 +93,15 @@ private:
     void parseSelect();
     void parseInsert();
 
-    template <typename T, typename ParseItem>
-    std::vector<T> parseList(ParseItem parseItem);
+    std::string normalizeForName(const Token &token);
 
-    std::vector<ColumnRecord> parseCols();
+    ColumnRecord parseColumnRecord();
+    std::string parseItem(); //? The default parser function, just parses strings
+
+    //? This is an overload function with a default parser function
+    template <typename T>
+    std::vector<T> parseList();
+
+    template <typename T, typename ParseItemFn>
+    std::vector<T> parseList(ParseItemFn parseItemFn);
 };

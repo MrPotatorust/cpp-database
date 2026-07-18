@@ -1,10 +1,27 @@
 #include <type_traits>
+#include <algorithm>
 
 #include "Helpers.hpp"
 
-namespace
+bool containsOnlyLetters(const std::string &s)
 {
-    constexpr auto UKNOWN_TYPE = "Unknown";
+    return all_of(s.begin(), s.end(), [](char ch)
+                  { return isalpha(static_cast<unsigned char>(ch)); });
+}
+
+void toLowerCaseRef(std::string &upperCaseStr)
+{
+    std::transform(upperCaseStr.begin(), upperCaseStr.end(), upperCaseStr.begin(), [](unsigned char c)
+                   { return static_cast<char>(std::tolower(c)); });
+}
+
+std::string toLowerCase(std::string_view upperCaseStr)
+{
+    std::string str(upperCaseStr);
+    std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c)
+                   { return static_cast<char>(std::tolower(c)); });
+
+    return str;
 }
 
 std::string tokenTypeToString(TokenType tokenType)
@@ -35,7 +52,7 @@ std::string tokenTypeToString(TokenType tokenType)
         return "Void";
     }
 
-    return UKNOWN_TYPE;
+    return std::string{UNKNOWN_TOKEN_TYPE};
 }
 
 std::string tokenValueToString(const ColValue &tokenValue)
@@ -46,7 +63,7 @@ std::string tokenValueToString(const ColValue &tokenValue)
             using ValueType = std::remove_cvref_t<decltype(value)>;
 
             if constexpr (std::is_same_v<ValueType, std::monostate>)
-                return "Empty";
+                return std::string{EMPTY_VALUE};
             else if constexpr (std::is_same_v<ValueType, std::string>)
                 return value;
             else if constexpr (std::is_same_v<ValueType, bool>)
@@ -55,6 +72,23 @@ std::string tokenValueToString(const ColValue &tokenValue)
                 return std::to_string(value);
         },
         tokenValue);
+}
+
+std::string colValueToString(const ColValue &value)
+{
+    return std::visit([](const auto &value) -> std::string
+                      {
+        using ValueType = std::remove_cvref_t<decltype(value)>;
+                    
+        if constexpr (std::is_same_v<ValueType, std::monostate>){
+            return std::string{EMPTY_VALUE};
+        }            
+        else if constexpr(std::is_same_v<ValueType, std::string>){
+            return value;
+        }
+        else return 
+            std::to_string(value); },
+                      value);
 }
 
 std::string colTypeToString(ColType colType)
@@ -75,7 +109,7 @@ std::string colTypeToString(ColType colType)
     case ColType::Varchar:
         return "Varchar";
     }
-    return UKNOWN_TYPE;
+    return std::string{UNKNOWN_TYPE};
 }
 
 std::optional<ColType> colValueToColType(const ColValue &value)

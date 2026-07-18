@@ -13,7 +13,7 @@ class Engine
 public:
     Engine(Database &db);
 
-    void query(std::string query);
+    std::string query(std::string query);
 
     void insert(std::string_view name, std::vector<std::string> insertCols, std::vector<Row> rows);
 
@@ -26,7 +26,7 @@ public:
 private:
     Database &db;
 
-    void execute(const Statement &statement);
+    std::string execute(const Statement &statement);
 
     bool tableExists(std::string_view name);
 
