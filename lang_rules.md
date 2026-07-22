@@ -39,6 +39,16 @@ Potential: conditional WHERE
 Example:
 DELETE FROM table_name WHERE condition;
 
+"INSERT INTO"
+
+Function identifier: "INSERT INTO"
+Potential: conditional WHERE
+
+Example:
+INSERT INTO table_name {optional}(column1, column2)
+VALUES (("test", "here"), ("not", "here")),
+WHERE condition;
+
 "UPDATE"
 
 Function identifier: "UPDATE"
@@ -56,7 +66,6 @@ Potential: conditional WHERE
 
 Example:
 SELECT col_name1, col_name2 / \* FROM Customers WHERE condition;
-
 
 IMPORTANT NOTES
 

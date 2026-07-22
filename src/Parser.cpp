@@ -74,17 +74,19 @@ void Parser::parse()
 
     auto firstToken = this->peek();
 
-    if (firstToken.lexeme == "create")
+    auto function = toLowerCase(firstToken.lexeme);
+
+    if (function == "create")
     {
         this->parseCreate();
         return;
     }
-    if (firstToken.lexeme == "select")
+    if (function == "select")
     {
         this->parseSelect();
         return;
     }
-    if (firstToken.lexeme == "insert")
+    if (function == "insert")
     {
         this->parseInsert();
         return;
@@ -162,11 +164,22 @@ void Parser::parseInsert()
     auto intoToken = this->advance();
     if (intoToken.type != TokenType::SpecialWord || toLowerCase(intoToken.lexeme) != "into")
     {
-        throw ParseError("The second word in a create statement has to be 'table'", intoToken.start, intoToken.end);
+        throw ParseError("The second word in a insert statement has to be 'into'", intoToken.start, intoToken.end);
     }
+
     auto tableName = this->parseNameToken();
 
-    std::vector<std::string> columns = parseList<std::string>();
+    std::vector<std::string> columns;
+    if (this->peek().lexeme == "(")
+    {
+        columns = parseList<std::string>();
+    }
+
+    auto valuesToken = this->advance();
+    if (valuesToken.type != TokenType::SpecialWord || toLowerCase(valuesToken.lexeme) != "values")
+    {
+        throw ParseError("The word before values list in a insert statement has to be 'values'", valuesToken.start, valuesToken.end);
+    }
 
     //? Parses each columns value, because the insert can be a list of list values ((123, "fun"), (123, "hihih"))
     std::vector<Row> rows = parseList<Row>([this]()
@@ -176,9 +189,7 @@ void Parser::parseInsert()
     this->statement = InsertStatement{
         tableName,
         columns,
-        rows
-
-    };
+        rows};
 }
 
 std::string Parser::parseItem()
