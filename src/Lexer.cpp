@@ -36,39 +36,51 @@ void Lexer::assignToken(LexerType type)
     else
     {
         // Number parsing
-        int intVal = 0;
-        double doubleVal = 0.0;
+        auto *begin = this->lexeme.data();
+        auto *end = begin + this->lexeme.size();
+        const bool isFloatingPointLiteral = this->lexeme.find('.') != std::string::npos ||
+                                            this->lexeme.find('e') != std::string::npos ||
+                                            this->lexeme.find('E') != std::string::npos;
 
-        auto [ptr, ec] = std::from_chars(this->lexeme.data(), this->lexeme.data() + this->lexeme.size(), intVal);
-
-        if (ec == std::errc())
+        if (isFloatingPointLiteral)
         {
-            auto [ptr2, ec2] = std::from_chars(this->lexeme.data(), this->lexeme.data() + this->lexeme.size(), intVal);
+            double doubleVal = 0.0;
+            auto [ptr, ec] = std::from_chars(begin, end, doubleVal);
 
-            if (ec2 != std::errc())
-            {
-                throw ec2;
-            }
-
-            if (intVal != doubleVal)
+            if (ec == std::errc() && ptr == end)
             {
                 token.type = TokenType::Double;
                 token.value = doubleVal;
             }
+            else if (ec == std::errc::result_out_of_range)
+            {
+                throw ParseError("The passed double is too big", token.start, token.end);
+            }
             else
+            {
+                token.type = TokenType::SpecialWord;
+                token.value = this->lexeme;
+            }
+        }
+        else
+        {
+            int intVal = 0;
+            auto [ptr, ec] = std::from_chars(begin, end, intVal);
+
+            if (ec == std::errc() && ptr == end)
             {
                 token.type = TokenType::Integer;
                 token.value = intVal;
             }
-        }
-        else if (ec == std::errc::result_out_of_range)
-        {
-            throw ParseError("The passed integer is too big", token.start, token.end);
-        }
-        else
-        {
-            token.type = TokenType::SpecialWord;
-            token.value = this->lexeme;
+            else if (ec == std::errc::result_out_of_range)
+            {
+                throw ParseError("The passed integer is too big", token.start, token.end);
+            }
+            else
+            {
+                token.type = TokenType::SpecialWord;
+                token.value = this->lexeme;
+            }
         }
     }
 
