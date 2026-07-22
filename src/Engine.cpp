@@ -110,6 +110,15 @@ void Engine::insert(std::string_view name, std::vector<std::string> insertCols, 
 
     std::vector<std::size_t> colMap;
 
+    //! TODO: This is a really stopgap solution if no insertCols were provided, but we are doing unnecassary logic down the line
+    if (insertCols.size() == 0)
+    {
+        for (auto col : cols)
+        {
+            insertCols.push_back(col.name);
+        }
+    }
+
     // Check if every column exists in the table
     for (auto col : insertCols)
     {
