@@ -11,7 +11,7 @@ struct QueryResult
 };
 
 /*
-MetaData Storage layout:
+Metadata Storage layout:
 
 ----------------------
 Pointers to individual tables (byte offsets inside the file)
@@ -48,6 +48,6 @@ public:
     void addTable(const Table &table);
 
 private:
-    void loadFile();
-    void persistToFile();
+    void loadMetada();
+    void persistMetadata();
 };

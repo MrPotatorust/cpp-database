@@ -44,7 +44,7 @@ namespace
 
 Database::Database()
 {
-    this->loadFile();
+    this->loadMetada();
 };
 
 std::vector<Table> &Database::getTables()
@@ -62,7 +62,7 @@ void Database::addTable(const Table &table)
     this->tables.push_back(table);
 }
 
-void Database::loadFile()
+void Database::loadMetada()
 {
     std::cout << "Loading file \n";
     std::ifstream file("./storage/metadata.dat", std::ios::binary);
@@ -131,7 +131,7 @@ void Database::loadFile()
     file.close();
 };
 
-void Database::persistToFile()
+void Database::persistMetadata()
 {
     std::ofstream file("./storage/metadata.dat", std::ios::binary);
 
@@ -155,7 +155,7 @@ void Database::persistToFile()
 
 void Database::persist()
 {
-    this->persistToFile();
+    this->persistMetadata();
 };
 
 QueryResult Database::query(std::string query)
