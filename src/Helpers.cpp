@@ -136,3 +136,19 @@ std::optional<ColType> colValueToColType(const ColValue &value)
         },
         value);
 }
+
+std::optional<ColAttribute> stringToColAttribute(std::string_view value)
+{
+    const auto normalizedValue = toLowerCase(value);
+
+    if (normalizedValue == "unique")
+        return ColAttribute::Unique;
+    if (normalizedValue == "auto_increment")
+        return ColAttribute::Auto_increment;
+    if (normalizedValue == "not_null")
+        return ColAttribute::Not_null;
+    if (normalizedValue == "primary_key")
+        return ColAttribute::Primary_key;
+
+    return std::nullopt;
+}

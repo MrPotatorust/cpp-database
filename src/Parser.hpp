@@ -95,8 +95,9 @@ private:
 
     std::string normalizeForName(const Token &token);
 
-    ColumnRecord parseColumnRecord();
     std::string parseItem(); //? The default parser function, just parses strings
+    ColumnRecord parseColumnRecord();
+    ColAttribute parseColAttribute();
 
     //? This is an overload function with a default parser function
     template <typename T>

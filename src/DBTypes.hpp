@@ -29,7 +29,7 @@ struct ColumnRecord
 {
     std::string name;
     ColType type;
-    std::vector<ColAttribute> attrs; // Not currently implemented
+    std::vector<ColAttribute> attrs;
 };
 
 enum class DBFunction

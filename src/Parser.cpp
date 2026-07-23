@@ -192,6 +192,18 @@ void Parser::parseInsert()
         rows};
 }
 
+ColAttribute Parser::parseColAttribute()
+{
+    auto token = this->advance();
+
+    auto colAttr = stringToColAttribute(token.lexeme);
+
+    if (!colAttr.has_value())
+        throw ParseError("Could not resolve column attribute", token.start, token.end);
+
+    return colAttr.value();
+}
+
 std::string Parser::parseItem()
 {
     auto token = this->advance();
@@ -272,6 +284,9 @@ ColumnRecord Parser::parseColumnRecord()
     {
         throw ParseError("Expected a valid column type", columnTypeToken.start, columnTypeToken.end);
     }
+
+    columnRecord.attrs = this->parseList<ColAttribute>([this]()
+                                                       { return this->parseColAttribute(); }, false);
 
     return columnRecord;
 }
