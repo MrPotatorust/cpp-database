@@ -45,6 +45,7 @@ namespace
 Database::Database()
 {
     this->loadMetada();
+    this->dumpTables();
 };
 
 std::vector<Table> &Database::getTables()
@@ -117,17 +118,6 @@ void Database::loadMetada()
         this->tables.push_back(std::move(table));
     }
 
-    for (auto &table : this->tables)
-    {
-
-        std::cout << "Table " << table.name << '\n';
-        for (auto col : table.columns)
-        {
-            std::cout << col.name << '\n';
-            std::cout << static_cast<int>(col.type) << '\n';
-        }
-    }
-
     file.close();
 };
 
@@ -170,3 +160,11 @@ QueryResult Database::query(std::string query)
         return {false, error.what()};
     }
 };
+
+void Database::dumpTables()
+{
+    for (auto table : this->tables)
+    {
+        table.dumpInfo();
+    }
+}

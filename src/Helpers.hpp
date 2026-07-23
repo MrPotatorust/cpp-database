@@ -19,3 +19,4 @@ std::string tokenValueToString(const ColValue &tokenValue);
 std::string colTypeToString(ColType colType);
 std::optional<ColType> colValueToColType(const ColValue &value);
 std::optional<ColAttribute> stringToColAttribute(std::string_view value);
+std::string colAttributeToString(ColAttribute attribute);

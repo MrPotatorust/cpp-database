@@ -15,6 +15,20 @@ bool Column::hasDefaultValue() const
     return true;
 }
 
+void Column::dumpInfo() const
+{
+    auto formatedName = this->name.size() > 12 ? this->name.substr(0, 9) + "..." : this->name;
+
+    std::cout << std::format("| {:<12} | {:<13}", formatedName, colTypeToString(this->type));
+
+    for (auto attr : this->attrs)
+    {
+        std::cout << std::format(" | {:<13}", colAttributeToString(attr));
+    }
+
+    std::cout << " | \n";
+}
+
 Table::Table()
 {
 }
@@ -72,4 +86,14 @@ void Table::printRows(const std::size_t &limit)
 void Table::writeRows(const std::vector<Row> &rowsToAdd)
 {
     (void)rowsToAdd;
+}
+
+void Table::dumpInfo() const
+{
+    std::cout << "Table: " << this->name << '\n';
+
+    for (auto col : this->columns)
+    {
+        col.dumpInfo();
+    }
 }

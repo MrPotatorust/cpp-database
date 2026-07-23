@@ -3,6 +3,7 @@
 #include <variant>
 #include <string>
 #include <cstdint>
+#include <format>
 
 #pragma once
 
@@ -62,6 +63,8 @@ public:
     bool hasDefaultValue() const;
     ColValue getDefaultValue() const;
 
+    void dumpInfo() const;
+
 private:
 };
 
@@ -89,4 +92,5 @@ public:
     void addColumn(const ColumnRecord &record);
     void writeRow(const Row &rowToAdd);
     void writeRows(const std::vector<Row> &rowsToAdd);
+    void dumpInfo() const;
 };

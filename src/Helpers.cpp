@@ -152,3 +152,20 @@ std::optional<ColAttribute> stringToColAttribute(std::string_view value)
 
     return std::nullopt;
 }
+
+std::string colAttributeToString(ColAttribute attribute)
+{
+    switch (attribute)
+    {
+    case ColAttribute::Unique:
+        return "unique";
+    case ColAttribute::Auto_increment:
+        return "auto_increment";
+    case ColAttribute::Not_null:
+        return "not_null";
+    case ColAttribute::Primary_key:
+        return "primary_key";
+    }
+
+    return std::string{UNKNOWN_TYPE};
+}

@@ -46,6 +46,7 @@ public:
     std::vector<Table> &getTables();
     const std::vector<Table> &getTables() const;
     void addTable(const Table &table);
+    void dumpTables();
 
 private:
     void loadMetada();
