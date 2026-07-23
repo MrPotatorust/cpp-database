@@ -100,8 +100,8 @@ private:
 
     //? This is an overload function with a default parser function
     template <typename T>
-    std::vector<T> parseList();
+    std::vector<T> parseList(bool inParentheses = true);
 
     template <typename T, typename ParseItemFn>
-    std::vector<T> parseList(ParseItemFn parseItemFn);
+    std::vector<T> parseList(ParseItemFn parseItemFn, bool inParentheses = true);
 };

@@ -12,7 +12,7 @@ Function identifier: "CREATE TABLE"
 
 Example:
 CREATE TABLE table_name (
-col_name1 type,
+col_name1 type, unique, auto_increment,
 col_name2 type,
 col_name3 type,
 );
@@ -46,7 +46,7 @@ Potential: conditional WHERE
 
 Example:
 INSERT INTO table_name {optional}(column1, column2)
-VALUES (("test", "here"), ("not", "here")),
+VALUES ("test", "here"), ("not", "here"),
 WHERE condition;
 
 "UPDATE"

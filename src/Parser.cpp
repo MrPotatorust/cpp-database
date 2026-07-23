@@ -184,7 +184,7 @@ void Parser::parseInsert()
     //? Parses each columns value, because the insert can be a list of list values ((123, "fun"), (123, "hihih"))
     std::vector<Row> rows = parseList<Row>([this]()
                                            { return this->parseList<ColValue>([this]()
-                                                                              { return this->advance().value; }); });
+                                                                              { return this->advance().value; }); }, false);
 
     this->statement = InsertStatement{
         tableName,
@@ -207,18 +207,19 @@ std::string Parser::parseItem()
 }
 
 template <typename T>
-std::vector<T> Parser::parseList()
+std::vector<T> Parser::parseList(bool inParentheses)
 {
     return this->parseList<T>([this]()
-                              { return this->parseItem(); });
+                              { return this->parseItem(); }, inParentheses);
 }
 
 template <typename T, typename ParseItemFn>
-std::vector<T> Parser::parseList(ParseItemFn parseItemFn)
+std::vector<T> Parser::parseList(ParseItemFn parseItemFn, bool inParentheses)
 {
     std::vector<T> list;
 
-    this->consume("(");
+    if (inParentheses)
+        this->consume("(");
 
     while (this->peek().lexeme != ")")
     {
@@ -230,8 +231,8 @@ std::vector<T> Parser::parseList(ParseItemFn parseItemFn)
         }
         catch (const std::exception &e)
         {
-
-            this->consume(")");
+            if (inParentheses)
+                this->consume(")");
             break;
         }
     }
@@ -282,8 +283,5 @@ ColumnRecord Parser::parseColumnRecord()
 // {
 // }
 // void Parser::parseUpdate()
-// {
-// }
-// void Parser::parseSelect()
 // {
 // }
