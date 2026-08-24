@@ -212,7 +212,7 @@ std::string Parser::parseItem()
     // auto tokenString = tokenValueToString(token.value);
 
     // if (tokenString == std::string{UNKNOWN_TOKEN_TYPE})
-    // {
+    // {clear
     //     throw ParseError("Could not convert token to string", token.start, token.end);
     // }
     return token.lexeme;
@@ -268,24 +268,15 @@ ColumnRecord Parser::parseColumnRecord()
 
     auto columnTypeToken = this->advance();
 
-    auto columnTypeLexeme = toLowerCase(columnTypeToken.lexeme);
 
-    if (columnTypeLexeme == "uint")
-        columnRecord.type = ColType::UInt;
-    else if (columnTypeLexeme == "int")
-        columnRecord.type = ColType::Int;
-    else if (columnTypeLexeme == "float")
-        columnRecord.type = ColType::Float;
-    else if (columnTypeLexeme == "double")
-        columnRecord.type = ColType::Double;
-    else if (columnTypeLexeme == "bool")
-        columnRecord.type = ColType::Bool;
-    else if (columnTypeLexeme == "varchar")
-        columnRecord.type = ColType::Varchar;
-    else
-    {
+    auto colType = stringToColType(columnTypeToken.lexeme);
+
+    if(!colType.has_value())
         throw ParseError("Expected a valid column type", columnTypeToken.start, columnTypeToken.end);
-    }
+
+    columnRecord.type = colType.value();
+
+
 
     columnRecord.attrs = this->parseList<ColAttribute>([this]()
                                                        { return this->parseColAttribute(); }, false);

@@ -153,6 +153,26 @@ std::optional<ColAttribute> stringToColAttribute(std::string_view value)
     return std::nullopt;
 }
 
+std::optional<ColType> stringToColType(std::string_view colType){
+    
+    auto type = toLowerCase(colType);
+
+    if (type == "uint")
+        return ColType::UInt;
+    else if (type == "int")
+        return ColType::Int;
+    else if (type == "float")
+        return ColType::Float;
+    else if (type == "double")
+        return ColType::Double;
+    else if (type == "bool")
+        return ColType::Bool;
+    else if (type == "varchar")
+        return ColType::Varchar;
+
+    return std::nullopt;
+}
+
 std::string colAttributeToString(ColAttribute attribute)
 {
     switch (attribute)
