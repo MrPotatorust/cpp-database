@@ -268,17 +268,19 @@ ColumnRecord Parser::parseColumnRecord()
 
     auto columnTypeToken = this->advance();
 
-    if (columnTypeToken.lexeme == "uint")
+    auto columnTypeLexeme = toLowerCase(columnTypeToken.lexeme);
+
+    if (columnTypeLexeme == "uint")
         columnRecord.type = ColType::UInt;
-    else if (columnTypeToken.lexeme == "int")
+    else if (columnTypeLexeme == "int")
         columnRecord.type = ColType::Int;
-    else if (columnTypeToken.lexeme == "float")
+    else if (columnTypeLexeme == "float")
         columnRecord.type = ColType::Float;
-    else if (columnTypeToken.lexeme == "double")
+    else if (columnTypeLexeme == "double")
         columnRecord.type = ColType::Double;
-    else if (columnTypeToken.lexeme == "bool")
+    else if (columnTypeLexeme == "bool")
         columnRecord.type = ColType::Bool;
-    else if (columnTypeToken.lexeme == "varchar")
+    else if (columnTypeLexeme == "varchar")
         columnRecord.type = ColType::Varchar;
     else
     {
