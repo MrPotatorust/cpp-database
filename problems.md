@@ -1,3 +1,4 @@
 1. The columns per table should be later maybe stored in an std::unordered_map so the lookups can be o(1) when veryfiying if a column is present in a list for example.
 2. In the Engine I am throwing just invalid argument errors, not ParseErrors, this is problematic because when I am validating the input to engine functions and throw the error I dont know where in the original query/statement the error is located because I dont know the token start and end index 
 3. In the engine insert we are looping over the columns twice
+4. In persistence we are always persisting all of the tables, even if they were not changed.

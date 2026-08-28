@@ -83,6 +83,13 @@ void Table::printRows(const std::size_t &limit)
     }
 }
 
+std::size_t Table::incrementRowId(){
+
+    if(std::numeric_limits<std::size_t>::max() == this->lastRowId)
+        throw std::overflow_error("Ran out of assignable ids next row for table: " + this->name + ".");
+    return ++this->lastRowId;
+}
+
 void Table::writeRows(const std::vector<Row> &rowsToAdd)
 {
     (void)rowsToAdd;

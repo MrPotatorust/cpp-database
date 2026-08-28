@@ -82,6 +82,7 @@ public:
     std::string name;
     std::vector<Column> columns;
     std::vector<Row> rows;
+    std::size_t lastRowId;
 
     Table();
     Table(std::string name, std::vector<Column> cols);
@@ -93,4 +94,6 @@ public:
     void writeRow(const Row &rowToAdd);
     void writeRows(const std::vector<Row> &rowsToAdd);
     void dumpInfo() const;
+private:
+    std::size_t incrementRowId();
 };

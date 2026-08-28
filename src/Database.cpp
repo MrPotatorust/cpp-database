@@ -11,13 +11,16 @@
 namespace
 {
     // Memory layout: strLen(8B), string
-    void writeString(std::ofstream &file, const std::string &val)
+    void writeString(std::ofstream &file, std::string_view val)
     {
-
         std::uint64_t len = static_cast<std::uint64_t>(val.size());
 
         file.write(reinterpret_cast<const char *>(&len), sizeof(len));
         file.write(val.data(), len);
+
+        if (!file) {
+            throw std::runtime_error("Could not write to " + std::string(val) +" file");
+        }
     };
 
     // Memory layout: strLen(8B or nBytes), string
@@ -123,11 +126,16 @@ void Database::loadMetada()
 
 void Database::persistMetadata()
 {
+
+    std::cout << "Persisting metadata \n";
     std::ofstream file("./storage/metadata.dat", std::ios::binary);
+
+    if(!file) throw std::runtime_error("Could not open the metadata file to persist metadata.");
+
 
     for (const auto &table : this->tables)
     {
-
+        std::cout << "Saving table " << table.name << '\n';
         std::uint8_t colsCount = static_cast<std::uint8_t>(table.columns.size());
 
         file.write(reinterpret_cast<const char *>(&colsCount), sizeof(colsCount));
@@ -143,9 +151,14 @@ void Database::persistMetadata()
     }
 };
 
+void Database::persistTableData(){
+    
+}
+
 void Database::persist()
 {
     this->persistMetadata();
+    this->persistTableData();
 };
 
 QueryResult Database::query(std::string query)

@@ -51,4 +51,5 @@ public:
 private:
     void loadMetada();
     void persistMetadata();
+    void persistTableData();
 };
